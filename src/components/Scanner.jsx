@@ -11,29 +11,33 @@ const Scanner = ({ onScan, isScanning, onError, scanFeedback }) => {
 
     useEffect(() => {
         if (!isScanning) {
+            // Always clear the reader div when not scanning
+            const readerDiv = document.getElementById('reader');
+            if (readerDiv) {
+                readerDiv.innerHTML = '';
+                readerDiv.style.backgroundColor = '#000';
+            }
+
             if (scannerRef.current) {
-                const state = scannerRef.current.getState();
-                if (state === 2 || state === 3) { // SCANNING or PAUSED
-                    scannerRef.current.stop().catch((err) => {
-                        console.error("Failed to stop scanner", err);
-                    }).finally(() => {
+                try {
+                    const state = scannerRef.current.getState();
+                    if (state === 2 || state === 3) { // SCANNING or PAUSED
+                        // Add a small delay to prevent state transition conflicts
+                        setTimeout(() => {
+                            if (scannerRef.current) {
+                                scannerRef.current.stop().catch((err) => {
+                                    console.error("Failed to stop scanner", err);
+                                }).finally(() => {
+                                    scannerRef.current = null;
+                                });
+                            }
+                        }, 100);
+                    } else {
                         scannerRef.current = null;
-                        // Clear the reader div to remove any leftover elements
-                        const readerDiv = document.getElementById('reader');
-                        if (readerDiv) {
-                            readerDiv.innerHTML = '';
-                            // Force black background
-                            readerDiv.style.backgroundColor = '#000';
-                        }
-                    });
-                } else {
-                    scannerRef.current = null;
-                    // Also clear DOM even if not running
-                    const readerDiv = document.getElementById('reader');
-                    if (readerDiv) {
-                        readerDiv.innerHTML = '';
-                        readerDiv.style.backgroundColor = '#000';
                     }
+                } catch (err) {
+                    console.error("Error checking scanner state", err);
+                    scannerRef.current = null;
                 }
             }
             return;
