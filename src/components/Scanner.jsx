@@ -12,10 +12,16 @@ const Scanner = ({ onScan, isScanning, onError, scanFeedback }) => {
     useEffect(() => {
         if (!isScanning) {
             if (scannerRef.current) {
-                scannerRef.current.stop().catch((err) => {
-                    console.error("Failed to stop scanner", err);
-                });
-                scannerRef.current = null;
+                const state = scannerRef.current.getState();
+                if (state === 2 || state === 3) { // SCANNING or PAUSED
+                    scannerRef.current.stop().catch((err) => {
+                        console.error("Failed to stop scanner", err);
+                    }).finally(() => {
+                        scannerRef.current = null;
+                    });
+                } else {
+                    scannerRef.current = null;
+                }
             }
             return;
         }
@@ -48,6 +54,12 @@ const Scanner = ({ onScan, isScanning, onError, scanFeedback }) => {
                         scannerRef.current = new Html5Qrcode("reader");
                     }
 
+                    // Check if scanner is already running
+                    const state = scannerRef.current.getState();
+                    if (state === 2 || state === 3) { // Already SCANNING or PAUSED
+                        await scannerRef.current.stop();
+                    }
+
                     await scannerRef.current.start(
                         selectedCameraId,
                         {
@@ -76,8 +88,14 @@ const Scanner = ({ onScan, isScanning, onError, scanFeedback }) => {
 
         return () => {
             if (scannerRef.current) {
-                scannerRef.current.stop().catch(console.error);
-                scannerRef.current = null;
+                const state = scannerRef.current.getState();
+                if (state === 2 || state === 3) { // SCANNING or PAUSED
+                    scannerRef.current.stop().catch(console.error).finally(() => {
+                        scannerRef.current = null;
+                    });
+                } else {
+                    scannerRef.current = null;
+                }
             }
         };
     }, [isScanning, currentCameraIndex, onScan, onError, initialCameraSet]);
