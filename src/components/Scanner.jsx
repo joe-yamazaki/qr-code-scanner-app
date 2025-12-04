@@ -52,8 +52,7 @@ const Scanner = ({ onScan, isScanning, onError, scanFeedback }) => {
                         selectedCameraId,
                         {
                             fps: 10,
-                            qrbox: { width: 250, height: 250 },
-                            aspectRatio: 1.0
+                            qrbox: 250
                         },
                         (decodedText, decodedResult) => {
                             onScan(decodedText);
