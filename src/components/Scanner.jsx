@@ -22,10 +22,18 @@ const Scanner = ({ onScan, isScanning, onError, scanFeedback }) => {
                         const readerDiv = document.getElementById('reader');
                         if (readerDiv) {
                             readerDiv.innerHTML = '';
+                            // Force black background
+                            readerDiv.style.backgroundColor = '#000';
                         }
                     });
                 } else {
                     scannerRef.current = null;
+                    // Also clear DOM even if not running
+                    const readerDiv = document.getElementById('reader');
+                    if (readerDiv) {
+                        readerDiv.innerHTML = '';
+                        readerDiv.style.backgroundColor = '#000';
+                    }
                 }
             }
             return;
