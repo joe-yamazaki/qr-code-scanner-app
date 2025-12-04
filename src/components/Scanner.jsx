@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, SwitchCamera } from 'lucide-react';
 
 const Scanner = ({ onScan, isScanning, onError }) => {
     const scannerRef = useRef(null);
     const [hasPermission, setHasPermission] = useState(null);
+    const [cameras, setCameras] = useState([]);
+    const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
 
     useEffect(() => {
         if (!isScanning) {
@@ -22,11 +24,19 @@ const Scanner = ({ onScan, isScanning, onError }) => {
                 const devices = await Html5Qrcode.getCameras();
                 if (devices && devices.length) {
                     setHasPermission(true);
-                    const cameraId = devices[0].id; // Use the first camera or prefer back camera
+                    setCameras(devices);
 
-                    // Prefer back camera
-                    const backCamera = devices.find(device => device.label.toLowerCase().includes('back'));
-                    const selectedCameraId = backCamera ? backCamera.id : cameraId;
+                    // Prefer back camera on first load
+                    let initialIndex = 0;
+                    const backCameraIndex = devices.findIndex(device =>
+                        device.label.toLowerCase().includes('back')
+                    );
+                    if (backCameraIndex !== -1) {
+                        initialIndex = backCameraIndex;
+                        setCurrentCameraIndex(initialIndex);
+                    }
+
+                    const selectedCameraId = devices[currentCameraIndex]?.id || devices[0].id;
 
                     if (!scannerRef.current) {
                         scannerRef.current = new Html5Qrcode("reader");
@@ -65,11 +75,34 @@ const Scanner = ({ onScan, isScanning, onError }) => {
                 scannerRef.current = null;
             }
         };
-    }, [isScanning, onScan, onError]);
+    }, [isScanning, currentCameraIndex, onScan, onError]);
+
+    const handleSwitchCamera = async () => {
+        if (cameras.length <= 1) return;
+
+        // Stop current scanner
+        if (scannerRef.current) {
+            await scannerRef.current.stop();
+            scannerRef.current = null;
+        }
+
+        // Switch to next camera
+        const nextIndex = (currentCameraIndex + 1) % cameras.length;
+        setCurrentCameraIndex(nextIndex);
+    };
 
     return (
         <div className="scanner-container">
             <div id="reader"></div>
+            {isScanning && cameras.length > 1 && (
+                <button
+                    className="camera-switch-btn"
+                    onClick={handleSwitchCamera}
+                    title="Switch Camera"
+                >
+                    <SwitchCamera size={24} />
+                </button>
+            )}
             {!isScanning && (
                 <div style={{
                     position: 'absolute',
