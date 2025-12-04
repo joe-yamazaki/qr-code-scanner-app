@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { AlertCircle, SwitchCamera } from 'lucide-react';
 
-const Scanner = ({ onScan, isScanning, onError }) => {
+const Scanner = ({ onScan, isScanning, onError, scanFeedback }) => {
     const scannerRef = useRef(null);
     const [hasPermission, setHasPermission] = useState(null);
     const [cameras, setCameras] = useState([]);
     const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
+    const [initialCameraSet, setInitialCameraSet] = useState(false);
 
     useEffect(() => {
         if (!isScanning) {
@@ -26,17 +27,22 @@ const Scanner = ({ onScan, isScanning, onError }) => {
                     setHasPermission(true);
                     setCameras(devices);
 
-                    // Prefer back camera on first load
-                    let initialIndex = 0;
-                    const backCameraIndex = devices.findIndex(device =>
-                        device.label.toLowerCase().includes('back')
-                    );
-                    if (backCameraIndex !== -1) {
-                        initialIndex = backCameraIndex;
-                        setCurrentCameraIndex(initialIndex);
+                    // Set back camera as default on first load only
+                    let cameraIndex = currentCameraIndex;
+                    if (!initialCameraSet) {
+                        const backCameraIndex = devices.findIndex(device =>
+                            device.label.toLowerCase().includes('back') ||
+                            device.label.toLowerCase().includes('rear') ||
+                            device.label.toLowerCase().includes('environment')
+                        );
+                        if (backCameraIndex !== -1) {
+                            cameraIndex = backCameraIndex;
+                            setCurrentCameraIndex(backCameraIndex);
+                        }
+                        setInitialCameraSet(true);
                     }
 
-                    const selectedCameraId = devices[currentCameraIndex]?.id || devices[0].id;
+                    const selectedCameraId = devices[cameraIndex]?.id || devices[0].id;
 
                     if (!scannerRef.current) {
                         scannerRef.current = new Html5Qrcode("reader");
@@ -75,7 +81,7 @@ const Scanner = ({ onScan, isScanning, onError }) => {
                 scannerRef.current = null;
             }
         };
-    }, [isScanning, currentCameraIndex, onScan, onError]);
+    }, [isScanning, currentCameraIndex, onScan, onError, initialCameraSet]);
 
     const handleSwitchCamera = async () => {
         if (cameras.length <= 1) return;
@@ -94,6 +100,11 @@ const Scanner = ({ onScan, isScanning, onError }) => {
     return (
         <div className="scanner-container">
             <div id="reader"></div>
+            {scanFeedback && (
+                <div className={`scan-feedback scan-feedback-${scanFeedback.type}`}>
+                    {scanFeedback.message}
+                </div>
+            )}
             {isScanning && cameras.length > 1 && (
                 <button
                     className="camera-switch-btn"

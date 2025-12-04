@@ -11,6 +11,7 @@ function App() {
   });
   const [isScanning, setIsScanning] = useState(false);
   const [toast, setToast] = useState(null);
+  const [scanFeedback, setScanFeedback] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('qr-scanned-codes', JSON.stringify(scannedCodes));
@@ -18,7 +19,12 @@ function App() {
 
   const showToast = (message) => {
     setToast(message);
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), 5000);
+  };
+
+  const showScanFeedback = (message, type = 'success') => {
+    setScanFeedback({ message, type });
+    setTimeout(() => setScanFeedback(null), 2000);
   };
 
   const playBeep = () => {
@@ -81,14 +87,12 @@ function App() {
   const lastScannedRef = useState(null); // actually use ref
   // We need to implement the duplicate check logic properly inside the callback
 
-  // Let's rewrite handleScan to be more robust
   const handleScanLogic = (text) => {
+    const isDuplicate = scannedCodes.some(item => item.text === text);
+
     setScannedCodes(prev => {
       const exists = prev.find(item => item.text === text);
       if (exists) {
-        // Only show toast if we haven't just shown it for this code
-        // We can't easily track "just shown" inside this reducer.
-        // Let's dispatch a side effect outside.
         return prev;
       }
       playBeep();
@@ -99,21 +103,14 @@ function App() {
       }, ...prev];
     });
 
-    // Side effect for duplicate warning
-    // We need access to the current list. 
-    // Since we are inside the callback, we can't see the *new* list yet.
-    // But we can check the *current* list `scannedCodes`.
-    // If `scannedCodes` contains `text`, show "Already scanned".
-    // But `scannedCodes` in this scope is from the last render.
-    // That's fine.
-
-    if (scannedCodes.some(item => item.text === text)) {
-      // Debounce the toast
+    if (isDuplicate) {
       const now = Date.now();
       if (!window.lastDuplicateToast || now - window.lastDuplicateToast > 2000) {
-        showToast("Already scanned!");
+        showScanFeedback("Already scanned!", "error");
         window.lastDuplicateToast = now;
       }
+    } else {
+      showScanFeedback("Scan successful!", "success");
     }
   };
 
@@ -185,6 +182,7 @@ function App() {
         isScanning={isScanning}
         onScan={handleScanLogic}
         onError={(err) => showToast(err)}
+        scanFeedback={scanFeedback}
       />
 
       <Controls

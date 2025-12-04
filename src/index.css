@@ -109,6 +109,47 @@ body {
   transform: scale(0.95);
 }
 
+.scan-feedback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1.5rem 2rem;
+  border-radius: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  z-index: 20;
+  animation: feedbackPulse 0.3s ease-out;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  min-width: 200px;
+}
+
+.scan-feedback-success {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.scan-feedback-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+@keyframes feedbackPulse {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 
 .controls {
   display: grid;
