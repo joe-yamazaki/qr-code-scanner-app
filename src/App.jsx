@@ -27,7 +27,7 @@ function App() {
     setTimeout(() => setScanFeedback(null), 2000);
   };
 
-  const playBeep = () => {
+  const playSuccessSound = () => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -36,11 +36,27 @@ function App() {
     gainNode.connect(audioContext.destination);
 
     oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5
+    oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5 - high pleasant tone
+    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.15);
+  };
+
+  const playErrorSound = () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.type = 'square'; // More harsh sound
+    oscillator.frequency.setValueAtTime(220, audioContext.currentTime); // A3 - lower buzzer tone
     gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
 
     oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.1);
+    oscillator.stop(audioContext.currentTime + 0.2);
   };
 
   const handleScan = useCallback((text) => {
@@ -95,7 +111,7 @@ function App() {
       if (exists) {
         return prev;
       }
-      playBeep();
+      playSuccessSound();
       return [{
         id: Date.now(),
         text,
@@ -106,6 +122,7 @@ function App() {
     if (isDuplicate) {
       const now = Date.now();
       if (!window.lastDuplicateToast || now - window.lastDuplicateToast > 2000) {
+        playErrorSound();
         showScanFeedback("Already scanned!", "error");
         window.lastDuplicateToast = now;
       }
