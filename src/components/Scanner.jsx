@@ -18,6 +18,11 @@ const Scanner = ({ onScan, isScanning, onError, scanFeedback }) => {
                         console.error("Failed to stop scanner", err);
                     }).finally(() => {
                         scannerRef.current = null;
+                        // Clear the reader div to remove any leftover elements
+                        const readerDiv = document.getElementById('reader');
+                        if (readerDiv) {
+                            readerDiv.innerHTML = '';
+                        }
                     });
                 } else {
                     scannerRef.current = null;
