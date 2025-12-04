@@ -27,8 +27,14 @@ function App() {
     setTimeout(() => setScanFeedback(null), 2000);
   };
 
-  const playSuccessSound = () => {
+  const playSuccessSound = async () => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Resume AudioContext for mobile browsers
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
+
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
@@ -43,8 +49,14 @@ function App() {
     oscillator.stop(audioContext.currentTime + 0.15);
   };
 
-  const playErrorSound = () => {
+  const playErrorSound = async () => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Resume AudioContext for mobile browsers
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
+
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 

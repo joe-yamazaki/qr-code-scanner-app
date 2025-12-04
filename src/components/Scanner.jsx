@@ -48,8 +48,8 @@ const Scanner = ({ onScan, isScanning, onError, scanFeedback }) => {
                         );
                         if (backCameraIndex !== -1) {
                             cameraIndex = backCameraIndex;
-                            setCurrentCameraIndex(backCameraIndex);
                         }
+                        setCurrentCameraIndex(cameraIndex);
                         setInitialCameraSet(true);
                     }
 
