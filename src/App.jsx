@@ -121,6 +121,11 @@ function App() {
     setScannedCodes(prev => prev.filter(item => item.id !== id));
   };
 
+  const handleClearAll = () => {
+    setScannedCodes([]);
+    showToast("All items cleared!");
+  };
+
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
   };
@@ -195,6 +200,7 @@ function App() {
         results={scannedCodes}
         onDelete={handleDelete}
         onCopy={handleCopy}
+        onClearAll={handleClearAll}
       />
 
       {toast && <div className="toast">{toast}</div>}

@@ -1,13 +1,19 @@
 import { Copy, Trash2, Check, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 
-const ResultList = ({ results, onDelete, onCopy }) => {
+const ResultList = ({ results, onDelete, onCopy, onClearAll }) => {
     const [copiedId, setCopiedId] = useState(null);
 
     const handleCopy = (id, text) => {
         onCopy(text);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    const handleClearAll = () => {
+        if (window.confirm(`${results.length}件のスキャン履歴を全て削除しますか？`)) {
+            onClearAll();
+        }
     };
 
     const isUrl = (text) => {
@@ -34,6 +40,14 @@ const ResultList = ({ results, onDelete, onCopy }) => {
         <div className="result-list">
             <div className="list-header">
                 <span className="list-count">{results.length} Item{results.length !== 1 ? 's' : ''}</span>
+                <button
+                    className="btn-icon"
+                    onClick={handleClearAll}
+                    title="Clear all"
+                    style={{ color: 'var(--danger)' }}
+                >
+                    <Trash2 size={18} />
+                </button>
             </div>
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                 {results.map((item) => (
